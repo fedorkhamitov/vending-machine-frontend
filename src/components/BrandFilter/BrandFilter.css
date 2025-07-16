@@ -10,12 +10,11 @@
 }
 
 .brand-select {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
+  padding: 8px;
+  border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 14px;
-  background: white;
-  cursor: pointer;
+  margin-right: 16px;
 }
 
 .brand-select:focus {
