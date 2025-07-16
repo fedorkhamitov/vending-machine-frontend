@@ -35,7 +35,11 @@ module.exports = {
     historyApiFallback: true,
     port: 3000,
     proxy: {
-      '/api': 'http://localhost:5017'
+      '/api': 'http://localhost:5017',
+      changeOrigin: true,
+      secure: false,
+      cookieDomainRewrite: 'localhost',
+      withCredentials: true
     }
   }
 };

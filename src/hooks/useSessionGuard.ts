@@ -6,7 +6,7 @@ export function useSessionGuard() {
   
   useEffect(() => {
     const handleAcquire = async () => {
-      if (!state.isLocked) {
+      if (!state.isLocked && !state.isLoading) {
         await acquireLock();
       }
     };
@@ -18,7 +18,7 @@ export function useSessionGuard() {
         releaseLock();
       }
     };
-  }, []);
+  }, [state.isLocked, state.isLoading]);
   
   useEffect(() => {
     const handleBeforeUnload = () => {

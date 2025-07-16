@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
 import { vendingMachineService } from '../services/VendingMachineService';
+import { ProductFilter } from '../types/product';
 
 interface VendingMachineState {
   isLocked: boolean;
@@ -75,26 +76,27 @@ export function VendingMachineProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval);
   }, []);
   
-  const acquireLock = async (): Promise<boolean> => {
-    dispatch({ type: 'SET_LOADING', payload: true });
-    dispatch({ type: 'CLEAR_ERROR' });
-    
-    try {
-      const acquired = await vendingMachineService.acquireLock();
-      if (acquired) {
-        dispatch({ type: 'LOCK_ACQUIRED' });
-        return true;
-      } else {
-        dispatch({ type: 'SET_ERROR', payload: 'Автомат занят другим пользователем' });
-        return false;
-      }
-    } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: 'Ошибка захвата автомата' });
+  const acquireLock = async (filter?: ProductFilter): Promise<boolean> => {
+  dispatch({ type: 'SET_LOADING', payload: true });
+  dispatch({ type: 'CLEAR_ERROR' });
+  
+  try {
+    const result = await vendingMachineService.acquireLock(filter);
+    if (result.success) {
+      dispatch({ type: 'LOCK_ACQUIRED' });
+      return true;
+    } else {
+      dispatch({ type: 'SET_ERROR', payload: 'Автомат занят другим пользователем' });
       return false;
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
     }
-  };
+  } catch (error) {
+    dispatch({ type: 'SET_ERROR', payload: 'Ошибка захвата автомата' });
+    return false;
+  } finally {
+    dispatch({ type: 'SET_LOADING', payload: false });
+  }
+};
+
   
   const releaseLock = async (): Promise<void> => {
     try {
