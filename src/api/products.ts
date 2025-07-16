@@ -20,3 +20,18 @@ function buildQuery(filter?: ProductFilter): string {
   
   return params.toString() ? `?${params.toString()}` : '';
 }
+
+export async function importExcel(file: File): Promise<{ imported: number }> {
+  const form = new FormData();
+  form.append('file', file);
+  const response = await fetch('/api/products/import-excel', {
+    method: 'POST',
+    credentials: 'include',
+    body: form,
+  });
+  if (!response.ok) {
+    throw new Error(`Ошибка ${response.status}`);
+  }
+  const result = await response.json() as { imported: number };
+  return result;
+}

@@ -1,9 +1,8 @@
 :root {
-  --btn-bg: #FF6B00;
-  --btn-bg-hover: #FF8A33;
-  --btn-text: #FFFFFF;
-  --btn-disabled-bg: #CCC;
-  --btn-disabled-text: #888;
-
-  --grid-gap: 16px;
+  --btn-select-bg: #FF6B00;
+  --btn-select-text: #FFFFFF;
+  --btn-selected-bg: #28A745;
+  --btn-selected-text: #FFFFFF;
+  --btn-disabled-bg: #CCCCCC;
+  --btn-disabled-text: #666666;
 }

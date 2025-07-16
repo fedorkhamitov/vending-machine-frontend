@@ -10,30 +10,45 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const { cart, addToCart } = useCart();
-  
+
   const isInCart = cart.items.some(item => item.product.id === product.id);
   const isOutOfStock = product.stockQuantity === 0;
-  
+
   const handleAddToCart = () => {
     if (!isOutOfStock && !isInCart) {
       addToCart(product);
     }
   };
-  
+
+  let buttonClass = 'product-button';
+  let buttonText = 'Выбрать';
+
+  if (isOutOfStock) {
+    buttonClass += ' product-button--disabled';
+    buttonText = 'Закончился';
+  } else if (isInCart) {
+    buttonClass += ' product-button--selected';
+    buttonText = 'Выбрано';
+  }
+
   return (
     <div className="product-card">
       <h3 className="product-name">{product.name}</h3>
-      <p className="product-description">{product.description}</p>
+
+      {product.description && (
+        <p className="product-description">{product.description}</p>
+      )}
+
       <div className="product-brand">{product.brandName}</div>
       <div className="product-price">{formatCurrency(product.price)}</div>
       <div className="product-stock">В наличии: {product.stockQuantity}</div>
-      
+
       <button
-        className={`product-button ${isOutOfStock ? 'out-of-stock' : ''} ${isInCart ? 'in-cart' : ''}`}
+        className={buttonClass}
         onClick={handleAddToCart}
         disabled={isOutOfStock || isInCart}
       >
-        {isOutOfStock ? 'Закончился' : isInCart ? 'В корзине' : 'Выбрать'}
+        {buttonText}
       </button>
     </div>
   );

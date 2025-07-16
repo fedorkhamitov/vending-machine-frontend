@@ -1,77 +1,74 @@
 .product-card {
-  border: 1px solid #ddd;
+  margin: 0;
+  max-width: none;
+  box-sizing: border-box;
+  border: 1px solid #e2e2e2;
   border-radius: 8px;
-  padding: 16px;
-  background: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
-}
-
-.product-card:hover {
-  transform: translateY(-2px);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .product-name {
-  font-size: 18px;
-  font-weight: 600;
   margin: 0 0 8px 0;
-  color: #333;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .product-description {
-  font-size: 14px;
-  color: #666;
+  font-size: 13px;
+  color: #666666;
   margin: 0 0 8px 0;
-  line-height: 1.4;
 }
 
 .product-brand {
-  font-size: 12px;
-  color: #888;
-  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: #888888;
+  margin-bottom: 4px;
 }
 
 .product-price {
-  font-size: 20px;
-  font-weight: 700;
-  color: #2196f3;
-  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
 }
 
 .product-stock {
   font-size: 12px;
-  color: #666;
-  margin: 0 0 12px 0;
+  color: #666666;
+  margin-bottom: 12px;
 }
 
 .product-button {
-  width: 100%;
-  padding: 12px;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: #ff6b00;
   border: none;
   border-radius: 4px;
-  font-size: 16px;
-  font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
-.product-button:not(.out-of-stock):not(.in-cart) {
-  background-color: #2196f3;
-  color: white;
+.product-button:hover:not(:disabled) {
+  background-color: #ff8a33;
 }
 
-.product-button:not(.out-of-stock):not(.in-cart):hover {
-  background-color: #1976d2;
+.product-button--selected {
+  background-color: #28a745;
 }
 
-.product-button.out-of-stock {
-  background-color: #f44336;
-  color: white;
-  cursor: not-allowed;
-}
-
-.product-button.in-cart {
-  background-color: #4caf50;
-  color: white;
+.product-button--disabled,
+.product-button:disabled {
+  background-color: #cccccc;
+  color: #666666;
   cursor: default;
+}
+
+.product-catalog {
+  padding: 16px;       
+  max-width: 1200px;
+  margin: 0 auto;
 }

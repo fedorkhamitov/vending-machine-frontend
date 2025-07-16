@@ -1,3 +1,4 @@
+// src/App.tsx
 import React, { useState } from "react";
 import { CartProvider } from "./context/CartContext";
 import { ProductCatalog } from "./components/ProductCatalog/ProductCatalog";
@@ -12,7 +13,6 @@ function App() {
   const [currentPage, setCurrentPage] = useState<Page>("catalog");
   const [resultMessage, setResultMessage] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [showBusyModal, setShowBusyModal] = useState(false);
 
   const handlePaymentSuccess = (message: string) => {
     setResultMessage(message);
@@ -24,18 +24,8 @@ function App() {
     setErrorMessage(error);
   };
 
-  const handleBackToCatalog = () => {
-    setCurrentPage("catalog");
-    setResultMessage("");
-  };
-
-  const handleBackToCart = () => {
-    setCurrentPage("cart");
-    setErrorMessage("");
-  };
-
   const renderContent = () => {
-    if (errorMessage) {
+    if (errorMessage && currentPage === "payment") {
       return (
         <div className="error-message">
           <h2>Ошибка оплаты</h2>
@@ -46,7 +36,7 @@ function App() {
     }
     switch (currentPage) {
       case "catalog":
-        return <ProductCatalog />;
+        return <ProductCatalog onCheckout={() => setCurrentPage("cart")} />;
       case "cart":
         return <Cart onCheckout={() => setCurrentPage("payment")} />;
       case "payment":
@@ -61,11 +51,11 @@ function App() {
         return (
           <OrderResult
             message={resultMessage}
-            onBackToCatalog={handleBackToCatalog}
+            onBackToCatalog={() => setCurrentPage("catalog")}
           />
         );
       default:
-        return <ProductCatalog />;
+        return <ProductCatalog onCheckout={() => setCurrentPage("cart")} />;
     }
   };
 

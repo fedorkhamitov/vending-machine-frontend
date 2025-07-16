@@ -3,7 +3,6 @@ import { Brand } from '../../types/brand';
 import './BrandFilter.css';
 
 interface BrandFilterProps {
-  // теперь id строковый или пустая строка
   brands: Brand[];
   selectedBrandId: string;
   onBrandChange: (id: string) => void;
