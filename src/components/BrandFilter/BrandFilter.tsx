@@ -1,23 +1,23 @@
 import React from 'react';
+import { Brand } from '../../types/brand';
 import './BrandFilter.css';
 
 interface BrandFilterProps {
-  brands: { id: number | null; name: string }[];
-  selectedBrandId: number | null;
-  onBrandChange: (id: number | null) => void;
+  // теперь id строковый или пустая строка
+  brands: Brand[];
+  selectedBrandId: string;
+  onBrandChange: (id: string) => void;
 }
 
 export function BrandFilter({ brands, selectedBrandId, onBrandChange }: BrandFilterProps) {
   return (
     <select
       className="brand-select"
-      value={selectedBrandId ?? ''}
-      onChange={(e) =>
-        onBrandChange(e.target.value === '' ? null : Number(e.target.value))
-      }
+      value={selectedBrandId}
+      onChange={e => onBrandChange(e.target.value)}
     >
-      {brands.map((b) => (
-        <option key={b.id ?? 'all'} value={b.id ?? ''}>
+      {brands.map(b => (
+        <option key={b.id} value={b.id}>
           {b.name}
         </option>
       ))}

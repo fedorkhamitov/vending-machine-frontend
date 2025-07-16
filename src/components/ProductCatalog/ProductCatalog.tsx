@@ -1,5 +1,3 @@
-// src/components/ProductCatalog/ProductCatalog.tsx
-
 import React, { useState, useEffect } from 'react';
 import { getBrands } from '../../api/brands';
 import { getProducts, getPriceRange } from '../../api/products';
@@ -19,22 +17,22 @@ export function ProductCatalog() {
   const [error, setError] = useState<string | null>(null);
   const [selectedCount, setSelectedCount] = useState(0);
 
-  // Загрузка брендов и начального диапазона цен
+  // 1) Загрузка брендов + начальный диапазон цен
   useEffect(() => {
     (async () => {
       try {
         const allBrands = await getBrands();
-        // prepend "Все бренды" с пустым id
-        setBrands([{ id: '', name: 'Все бренды' }, ...allBrands]);
-        const initialRange = await getPriceRange();
-        setPriceRange({ minPrice: initialRange.minPrice, maxPrice: initialRange.maxPrice });
+        // prepend пункт «Все бренды» с пустым id и description
+        setBrands([{ id: '', name: 'Все бренды', description: '' }, ...allBrands]);
+        const initRange = await getPriceRange();
+        setPriceRange({ minPrice: initRange.minPrice, maxPrice: initRange.maxPrice });
       } catch {
         setError('Ошибка загрузки данных');
       }
     })();
   }, []);
 
-  // Загрузка товаров при изменении фильтра
+  // 2) Загрузка товаров при изменении фильтра
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -42,8 +40,8 @@ export function ProductCatalog() {
       try {
         const prods = await getProducts(filter);
         setProducts(prods);
-        const range = await getPriceRange(filter.brandId);
-        setPriceRange({ minPrice: range.minPrice, maxPrice: range.maxPrice });
+        const rng = await getPriceRange(filter.brandId);
+        setPriceRange({ minPrice: rng.minPrice, maxPrice: rng.maxPrice });
       } catch {
         setError('Ошибка загрузки товаров');
       } finally {
@@ -52,6 +50,7 @@ export function ProductCatalog() {
     })();
   }, [filter]);
 
+  // 3) Обработка ошибки
   if (error) {
     return (
       <div className="error-container">
@@ -64,6 +63,7 @@ export function ProductCatalog() {
     );
   }
 
+  // 4) Рендер страницы
   return (
     <div className="product-catalog">
       <header className="catalog-header">
@@ -74,24 +74,19 @@ export function ProductCatalog() {
         <BrandFilter
           brands={brands}
           selectedBrandId={filter.brandId ?? ''}
-          onBrandChange={(brandId) =>
-            setFilter((f) => ({
-              ...f,
-              brandId: brandId || undefined,
-            }))
-          }
+          onBrandChange={brandId => setFilter(f => ({
+            ...f,
+            brandId: brandId || undefined
+          }))}
         />
+
         <PriceSlider
           min={priceRange.minPrice}
           max={priceRange.maxPrice}
           selectedMin={filter.minPrice ?? priceRange.minPrice}
           selectedMax={filter.maxPrice ?? priceRange.maxPrice}
           onChange={(minPrice, maxPrice) =>
-            setFilter((f) => ({
-              ...f,
-              minPrice,
-              maxPrice,
-            }))
+            setFilter(f => ({ ...f, minPrice, maxPrice }))
           }
         />
       </section>
@@ -100,7 +95,7 @@ export function ProductCatalog() {
         <div className="loading">Загрузка товаров...</div>
       ) : (
         <section className="products-grid">
-          {products.map((p) => (
+          {products.map(p => (
             <ProductCard key={p.id} product={p} />
           ))}
         </section>
