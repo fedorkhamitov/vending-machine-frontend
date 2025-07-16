@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Product, ProductFilter, PriceRange } from '../../types/product';
-import { Brand } from '../../types/brand';
+import { useVendingMachine } from '../../services/VendingMachineContext'; 
+import { useSessionGuard } from '../../hooks/useSessionGuard';
 import { getProducts, getPriceRange } from '../../api/products';
 import { getBrands } from '../../api/brands';
+import { Product, ProductFilter, PriceRange } from '../../types/product';
+import { Brand } from '../../types/brand';
 import { ProductCard } from '../ProductCard/ProductCard';
 import { BrandFilter } from '../BrandFilter/BrandFilter';
 import { PriceFilter } from '../PriceFilter/PriceFilter';
+import { BusyModal } from '../BusyModal/BusyModal';
 import './ProductCatalog.css';
 
 export function ProductCatalog() {
+  const { state: machineState } = useVendingMachine();
+  const { isLocked, isLoading: sessionLoading, error: sessionError } = useSessionGuard();
+  
   const [products, setProducts] = useState<Product[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [priceRange, setPriceRange] = useState<PriceRange>({ minPrice: 0, maxPrice: 0 });
@@ -21,16 +27,18 @@ export function ProductCatalog() {
   }, []);
   
   useEffect(() => {
-    loadProducts();
-    loadPriceRange();
-  }, [filter]);
+    if (isLocked && !sessionLoading) {
+      loadProducts();
+      loadPriceRange();
+    }
+  }, [isLocked, sessionLoading, filter]);
   
   const loadBrands = async () => {
     try {
       const brandsData = await getBrands();
       setBrands(brandsData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка загрузки брендов');
+      setError('Ошибка загрузки брендов');
     }
   };
   
@@ -41,7 +49,11 @@ export function ProductCatalog() {
       setProducts(productsData);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка загрузки товаров');
+      if (err instanceof Error && err.message === 'MACHINE_BUSY') {
+        setError('Автомат занят другим пользователем');
+      } else {
+        setError('Ошибка загрузки товаров');
+      }
     } finally {
       setLoading(false);
     }
@@ -60,19 +72,45 @@ export function ProductCatalog() {
     setFilter(newFilter);
   };
   
+  if (machineState.isOccupied || sessionError) {
+    return (
+      <BusyModal 
+        isOpen={true}
+        message={sessionError || 'Автомат занят другим пользователем'}
+        onClose={() => window.location.reload()}
+      />
+    );
+  }
+  
+  if (sessionLoading || !isLocked) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner">
+          <div className="spinner"></div>
+          <p>Подключение к автомату...</p>
+        </div>
+      </div>
+    );
+  }
+  
   if (error) {
     return (
-      <div className="catalog-error">
+      <div className="error-container">
         <h2>Ошибка</h2>
         <p>{error}</p>
-        <button onClick={loadProducts}>Попробовать снова</button>
+        <button onClick={() => window.location.reload()}>Попробовать снова</button>
       </div>
     );
   }
   
   return (
     <div className="product-catalog">
-      <h1>Газированные напитки</h1>
+      <div className="catalog-header">
+        <h1>Газированные напитки</h1>
+        <div className="session-indicator">
+          <span className="session-status active">Подключен к автомату</span>
+        </div>
+      </div>
       
       <div className="filters">
         <BrandFilter
