@@ -1,5 +1,13 @@
-import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
-import { vendingMachineService } from '../services/VendingMachineService';
+// src/services/VendingMachineContext.tsx
+
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  ReactNode,
+  useEffect,
+} from 'react';
+import { vendingMachineService, MachineStatus } from './VendingMachineService';
 import { ProductFilter } from '../types/product';
 
 interface VendingMachineState {
@@ -10,7 +18,7 @@ interface VendingMachineState {
   lastStatusCheck: number;
 }
 
-type VendingMachineAction = 
+type VendingMachineAction =
   | { type: 'LOCK_ACQUIRED' }
   | { type: 'LOCK_RELEASED' }
   | { type: 'STATUS_UPDATED'; payload: { isOccupied: boolean } }
@@ -26,17 +34,20 @@ const initialState: VendingMachineState = {
   lastStatusCheck: 0,
 };
 
-function vendingMachineReducer(state: VendingMachineState, action: VendingMachineAction): VendingMachineState {
+function vendingMachineReducer(
+  state: VendingMachineState,
+  action: VendingMachineAction
+): VendingMachineState {
   switch (action.type) {
     case 'LOCK_ACQUIRED':
-      return { ...state, isLocked: true, isOccupied: false, error: null };
+      return { ...state, isLocked: true, error: null };
     case 'LOCK_RELEASED':
       return { ...state, isLocked: false, error: null };
     case 'STATUS_UPDATED':
-      return { 
-        ...state, 
-        isOccupied: action.payload.isOccupied, 
-        lastStatusCheck: Date.now() 
+      return {
+        ...state,
+        isOccupied: action.payload.isOccupied,
+        lastStatusCheck: Date.now(),
       };
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
@@ -53,75 +64,79 @@ interface VendingMachineContextType {
   state: VendingMachineState;
   acquireLock: () => Promise<boolean>;
   releaseLock: () => Promise<void>;
-  checkStatus: () => Promise<void>;
+  checkStatus: () => Promise<MachineStatus>;
   clearError: () => void;
 }
 
-const VendingMachineContext = createContext<VendingMachineContextType | undefined>(undefined);
+const VendingMachineContext = createContext<VendingMachineContextType | undefined>(
+  undefined
+);
 
 export function VendingMachineProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(vendingMachineReducer, initialState);
-  
-  // Периодическая проверка статуса автомата
+  const [state, dispatch] = useReducer(
+    vendingMachineReducer,
+    initialState
+  );
+
+  // Периодическая проверка занятости автомата
   useEffect(() => {
-    const interval = setInterval(async () => {
+    const timer = window.setInterval(async () => {
       try {
         const status = await vendingMachineService.getStatus();
         dispatch({ type: 'STATUS_UPDATED', payload: status });
-      } catch (error) {
-        console.error('Status check failed:', error);
+      } catch {
+        console.error('Status check failed');
       }
-    }, 5000); 
-    
-    return () => clearInterval(interval);
+    }, 5000);
+    return () => {
+      clearInterval(timer);
+    };
   }, []);
-  
-  const acquireLock = async (filter?: ProductFilter): Promise<boolean> => {
-  dispatch({ type: 'SET_LOADING', payload: true });
-  dispatch({ type: 'CLEAR_ERROR' });
-  
-  try {
-    const result = await vendingMachineService.acquireLock(filter);
-    if (result.success) {
-      dispatch({ type: 'LOCK_ACQUIRED' });
-      return true;
-    } else {
-      dispatch({ type: 'SET_ERROR', payload: 'Автомат занят другим пользователем' });
-      return false;
-    }
-  } catch (error) {
-    dispatch({ type: 'SET_ERROR', payload: 'Ошибка захвата автомата' });
-    return false;
-  } finally {
-    dispatch({ type: 'SET_LOADING', payload: false });
-  }
-};
 
-  
+  const acquireLock = async (): Promise<boolean> => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'CLEAR_ERROR' });
+    try {
+      const result = await vendingMachineService.acquireLock();
+      if (result.success) {
+        dispatch({ type: 'LOCK_ACQUIRED' });
+        return true;
+      } else {
+        dispatch({
+          type: 'SET_ERROR',
+          payload: 'Автомат занят другим пользователем',
+        });
+        return false;
+      }
+    } catch {
+      dispatch({ type: 'SET_ERROR', payload: 'Ошибка захвата автомата' });
+      return false;
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  };
+
   const releaseLock = async (): Promise<void> => {
     try {
       await vendingMachineService.releaseLock();
       dispatch({ type: 'LOCK_RELEASED' });
-    } catch (error) {
-      console.error('Release lock failed:', error);
+    } catch {
+      console.error('Release lock failed');
     }
   };
-  
-  const checkStatus = async (): Promise<void> => {
-    try {
-      const status = await vendingMachineService.getStatus();
-      dispatch({ type: 'STATUS_UPDATED', payload: status });
-    } catch (error) {
-      console.error('Status check failed:', error);
-    }
+
+  const checkStatus = async (): Promise<MachineStatus> => {
+    const status = await vendingMachineService.getStatus();
+    dispatch({ type: 'STATUS_UPDATED', payload: status });
+    return status;
   };
-  
+
   const clearError = () => {
     dispatch({ type: 'CLEAR_ERROR' });
   };
-  
+
   return (
-    <VendingMachineContext.Provider 
+    <VendingMachineContext.Provider
       value={{ state, acquireLock, releaseLock, checkStatus, clearError }}
     >
       {children}
@@ -132,7 +147,9 @@ export function VendingMachineProvider({ children }: { children: ReactNode }) {
 export function useVendingMachine() {
   const context = useContext(VendingMachineContext);
   if (!context) {
-    throw new Error('useVendingMachine must be used within VendingMachineProvider');
+    throw new Error(
+      'useVendingMachine must be used within VendingMachineProvider'
+    );
   }
   return context;
 }

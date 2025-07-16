@@ -14,40 +14,52 @@ import { BusyModal } from '../BusyModal/BusyModal';
 import './ProductCatalog.css';
 
 export function ProductCatalog() {
-  const { state: machineState, acquireLock, releaseLock } = useVendingMachine();
-  const { isLocked, isLoading: sessionLoading, error: sessionError } = useSessionGuard();
+  const {
+    state: machineState,
+    acquireLock,
+    releaseLock,
+    clearError,
+  } = useVendingMachine();
+  const {
+    isLocked,
+    isLoading: sessionLoading,
+    error: sessionError,
+  } = useSessionGuard();
 
-  const [isBusyOpen, setBusyOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [priceRange, setPriceRange] = useState<PriceRange>({ minPrice: 0, maxPrice: 0 });
+  const [priceRange, setPriceRange] = useState<PriceRange>({
+    minPrice: 0,
+    maxPrice: 0,
+  });
   const [filter, setFilter] = useState<ProductFilter>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 1) При монтировании – пытаемся захватить автомат
+  // 1) При монтировании — автоматич. захват и последующий релиз
   useEffect(() => {
     (async () => {
       const ok = await acquireLock();
-      if (!ok) setBusyOpen(true);
+      if (!ok) return;
     })();
-    // при анмаунте – освобождаем автомат
-    return () => void releaseLock();
-  }, []);
+    return () => {
+      releaseLock();
+    };
+  }, [acquireLock, releaseLock]);
 
-  // 2) Загружаем бренды один раз
+  // 2) Загрузка брендов один раз
   useEffect(() => {
     (async () => {
       try {
-        const brandsData = await getBrands();
-        setBrands(brandsData);
+        const data = await getBrands();
+        setBrands(data);
       } catch {
         setError('Ошибка загрузки брендов');
       }
     })();
   }, []);
 
-  // 3) Когда блокировка установлена или фильтр изменился – загружаем товары и диапазон цен
+  // 3) При успешном захвате или изменении фильтра — загрузка каталога
   useEffect(() => {
     if (isLocked && !sessionLoading) {
       loadProducts();
@@ -55,7 +67,6 @@ export function ProductCatalog() {
     }
   }, [isLocked, sessionLoading, filter]);
 
-  // Загрузка товаров
   const loadProducts = async () => {
     setLoading(true);
     setError(null);
@@ -65,7 +76,6 @@ export function ProductCatalog() {
     } catch (err) {
       if (err instanceof Error && err.message === 'MACHINE_BUSY') {
         setError('Автомат занят другим пользователем');
-        setBusyOpen(true);
       } else {
         setError('Ошибка загрузки товаров');
       }
@@ -74,7 +84,6 @@ export function ProductCatalog() {
     }
   };
 
-  // Загрузка диапазона цен
   const loadPriceRange = async () => {
     try {
       const range = await getPriceRange(filter.brandId);
@@ -84,27 +93,24 @@ export function ProductCatalog() {
     }
   };
 
-  // Обновление фильтра
   const handleFilterChange = (newFilter: ProductFilter) => {
     setFilter(newFilter);
   };
 
-  // 4) Если автомат занят – показываем BusyModal
-  if (isBusyOpen) {
+  // 4) Показ BusyModal при ошибке сессии (423)
+  if (sessionError) {
     return (
       <BusyModal
         isOpen={true}
-        message="Автомат занят другим пользователем"
-        onClose={async () => {
-          setBusyOpen(false);
-          const ok = await acquireLock();
-          if (!ok) setBusyOpen(true);
+        message={sessionError}
+        onClose={() => {
+          clearError();
         }}
       />
     );
   }
 
-  // 5) Если сессия ещё подключается – показываем индикатор
+  // 5) Индикатор подключения
   if (sessionLoading || !isLocked) {
     return (
       <div className="loading-container">
@@ -116,24 +122,28 @@ export function ProductCatalog() {
     );
   }
 
-  // 6) Если есть общая ошибка – показываем её с кнопкой перезагрузки
-  if (error && !isBusyOpen) {
+  // 6) Отдельные ошибки (фильтр/бренды)
+  if (error) {
     return (
       <div className="error-container">
         <h2>Ошибка</h2>
         <p>{error}</p>
-        <button onClick={() => window.location.reload()}>Попробовать снова</button>
+        <button onClick={() => window.location.reload()}>
+          Попробовать снова
+        </button>
       </div>
     );
   }
 
-  // 7) Основной рендер: каталог товаров
+  // 7) Рендер каталога
   return (
     <div className="product-catalog">
       <div className="catalog-header">
         <h1>Газированные напитки</h1>
         <div className="session-indicator">
-          <span className="session-status active">Подключен к автомату</span>
+          <span className="session-status active">
+            Подключен к автомату
+          </span>
         </div>
       </div>
 
@@ -141,7 +151,9 @@ export function ProductCatalog() {
         <BrandFilter
           brands={brands}
           selectedBrandId={filter.brandId}
-          onBrandChange={brandId => handleFilterChange({ ...filter, brandId })}
+          onBrandChange={(brandId) =>
+            handleFilterChange({ ...filter, brandId })
+          }
         />
 
         <PriceFilter
@@ -158,8 +170,8 @@ export function ProductCatalog() {
         <div className="loading">Загрузка товаров...</div>
       ) : (
         <div className="products-grid">
-          {products.map(product => (
-            <ProductCard key={product.id} product={product} />
+          {products.map((p) => (
+            <ProductCard key={p.id} product={p} />
           ))}
         </div>
       )}
