@@ -1,0 +1,134 @@
+.payment {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.payment h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+.payment-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+@media (max-width: 768px) {
+  .payment-info {
+    grid-template-columns: 1fr;
+  }
+}
+
+.order-summary {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.order-summary h3 {
+  margin: 0 0 16px 0;
+  color: #333;
+}
+
+.order-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.order-item:last-child {
+  border-bottom: none;
+}
+
+.order-total {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 2px solid #ddd;
+  font-size: 18px;
+  color: #333;
+}
+
+.coin-selection h3 {
+  margin: 0 0 16px 0;
+  color: #333;
+}
+
+.payment-summary {
+  grid-column: 1 / -1;
+  background: #f0f8ff;
+  padding: 20px;
+  border-radius: 8px;
+  border: 2px solid #2196f3;
+}
+
+.payment-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 18px;
+}
+
+.payment-row:last-child {
+  font-weight: 600;
+  border-top: 1px solid #ddd;
+  margin-top: 8px;
+  padding-top: 16px;
+}
+
+.enough {
+  color: #4caf50;
+}
+
+.not-enough {
+  color: #f44336;
+}
+
+.payment-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.back-button {
+  background: #757575;
+  color: white;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.back-button:hover {
+  background: #616161;
+}
+
+.pay-button {
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  flex: 1;
+}
+
+.pay-button:hover:not(:disabled) {
+  background: #45a049;
+}
+
+.pay-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}

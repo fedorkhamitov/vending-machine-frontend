@@ -1,0 +1,24 @@
+.brand-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.brand-filter label {
+  font-weight: 600;
+  color: #333;
+}
+
+.brand-select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+}
+
+.brand-select:focus {
+  outline: none;
+  border-color: #2196f3;
+}
