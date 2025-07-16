@@ -1,3 +1,5 @@
+// src/components/ProductCatalog/ProductCatalog.tsx
+
 import React, { useState, useEffect } from 'react';
 import { getBrands } from '../../api/brands';
 import { getProducts, getPriceRange } from '../../api/products';
@@ -11,27 +13,28 @@ import './ProductCatalog.css';
 export function ProductCatalog() {
   const [products, setProducts] = useState<Product[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [priceRange, setPriceRange] = useState<PriceRange>({ min: 0, max: 0 });
+  const [priceRange, setPriceRange] = useState<PriceRange>({ minPrice: 0, maxPrice: 0 });
   const [filter, setFilter] = useState<ProductFilter>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedCount, setSelectedCount] = useState(0);
 
-  // Загрузка брендов и начального диапазона
+  // Загрузка брендов и начального диапазона цен
   useEffect(() => {
     (async () => {
       try {
         const allBrands = await getBrands();
-        setBrands([{ id: null, name: 'Все бренды' }, ...allBrands]);
+        // prepend "Все бренды" с пустым id
+        setBrands([{ id: '', name: 'Все бренды' }, ...allBrands]);
         const initialRange = await getPriceRange();
-        setPriceRange({ min: initialRange.minPrice, max: initialRange.maxPrice });
+        setPriceRange({ minPrice: initialRange.minPrice, maxPrice: initialRange.maxPrice });
       } catch {
         setError('Ошибка загрузки данных');
       }
     })();
   }, []);
 
-  // Загрузка товаров при фильтре
+  // Загрузка товаров при изменении фильтра
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -40,7 +43,7 @@ export function ProductCatalog() {
         const prods = await getProducts(filter);
         setProducts(prods);
         const range = await getPriceRange(filter.brandId);
-        setPriceRange({ min: range.minPrice, max: range.maxPrice });
+        setPriceRange({ minPrice: range.minPrice, maxPrice: range.maxPrice });
       } catch {
         setError('Ошибка загрузки товаров');
       } finally {
@@ -70,16 +73,25 @@ export function ProductCatalog() {
       <section className="filters">
         <BrandFilter
           brands={brands}
-          selectedBrandId={filter.brandId ?? null}
-          onBrandChange={(brandId) => setFilter((f) => ({ ...f, brandId }))}
+          selectedBrandId={filter.brandId ?? ''}
+          onBrandChange={(brandId) =>
+            setFilter((f) => ({
+              ...f,
+              brandId: brandId || undefined,
+            }))
+          }
         />
         <PriceSlider
-          min={priceRange.min}
-          max={priceRange.max}
-          selectedMin={filter.minPrice ?? priceRange.min}
-          selectedMax={filter.maxPrice ?? priceRange.max}
+          min={priceRange.minPrice}
+          max={priceRange.maxPrice}
+          selectedMin={filter.minPrice ?? priceRange.minPrice}
+          selectedMax={filter.maxPrice ?? priceRange.maxPrice}
           onChange={(minPrice, maxPrice) =>
-            setFilter((f) => ({ ...f, minPrice, maxPrice }))
+            setFilter((f) => ({
+              ...f,
+              minPrice,
+              maxPrice,
+            }))
           }
         />
       </section>
@@ -89,11 +101,7 @@ export function ProductCatalog() {
       ) : (
         <section className="products-grid">
           {products.map((p) => (
-            <ProductCard
-              key={p.id}
-              product={p}
-              onSelect={() => setSelectedCount((c) => c + 1)}
-            />
+            <ProductCard key={p.id} product={p} />
           ))}
         </section>
       )}
@@ -102,7 +110,9 @@ export function ProductCatalog() {
         <button
           className="btn btn--primary"
           disabled={selectedCount === 0}
-          onClick={() => {/* переход к оформлению */}}
+          onClick={() => {
+            /* TODO: переход к оформлению */
+          }}
         >
           Выбрано: {selectedCount}
         </button>
