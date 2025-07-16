@@ -16,17 +16,12 @@ class ApiClient {
 
     const response = await fetch(url, {
       ...rest,
-      credentials: 'include',
+      credentials: 'include', 
       headers: {
         'Content-Type': 'application/json',
         ...headers,
       },
-      body:
-        body !== undefined
-          ? typeof body === 'string' || body instanceof URLSearchParams
-            ? body
-            : JSON.stringify(body)
-          : undefined,
+      body: body ?? undefined,
     });
 
     if (response.status === 423) {
@@ -43,34 +38,29 @@ class ApiClient {
     return payload.data as T;
   }
 
-  /** GET запрос */
   async get<T>(endpoint: string): Promise<T> {
     return this.request<T>(endpoint, { method: 'GET' });
   }
 
-  /** POST запрос с телом типа BodyInit */
-  async post<T>(endpoint: string, body?: BodyInit): Promise<T> {
+  async post<T>(endpoint: string, data?: unknown): Promise<T> {
+    const body = data !== undefined ? JSON.stringify(data) : undefined;
     return this.request<T>(endpoint, {
       method: 'POST',
       body,
     });
   }
 
-  /** PUT запрос с телом типа BodyInit */
-  async put<T>(endpoint: string, body?: BodyInit): Promise<T> {
+  async put<T>(endpoint: string, data?: unknown): Promise<T> {
+    const body = data !== undefined ? JSON.stringify(data) : undefined;
     return this.request<T>(endpoint, {
       method: 'PUT',
       body,
     });
   }
 
-  /** DELETE запрос */
   async delete<T>(endpoint: string): Promise<T> {
     return this.request<T>(endpoint, { method: 'DELETE' });
   }
 }
 
-export const apiClient = new ApiClient(
-  // При необходимости указать базовый URL, например:
-  // 'http://localhost:5000'
-);
+export const apiClient = new ApiClient();
