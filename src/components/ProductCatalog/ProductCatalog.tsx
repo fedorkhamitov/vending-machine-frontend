@@ -1,16 +1,16 @@
 // src/components/ProductCatalog/ProductCatalog.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useVendingMachine } from '../../services/VendingMachineContext';
 import { useSessionGuard } from '../../hooks/useSessionGuard';
-import { getProducts, getPriceRange } from '../../api/products';
 import { getBrands } from '../../api/brands';
-import { Product, ProductFilter, PriceRange } from '../../types/product';
-import { Brand } from '../../types/brand';
-import { ProductCard } from '../ProductCard/ProductCard';
+import { getProducts, getPriceRange } from '../../api/products';
 import { BrandFilter } from '../BrandFilter/BrandFilter';
 import { PriceFilter } from '../PriceFilter/PriceFilter';
+import { ProductCard } from '../ProductCard/ProductCard';
 import { BusyModal } from '../BusyModal/BusyModal';
+import { Brand } from '../../types/brand';
+import { Product, ProductFilter, PriceRange } from '../../types/product';
 import './ProductCatalog.css';
 
 export function ProductCatalog() {
@@ -28,19 +28,25 @@ export function ProductCatalog() {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [priceRange, setPriceRange] = useState<PriceRange>({
-    minPrice: 0,
-    maxPrice: 0,
-  });
+  const [priceRange, setPriceRange] = useState<PriceRange>({ minPrice: 0, maxPrice: 0 });
   const [filter, setFilter] = useState<ProductFilter>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 1) При монтировании — автоматич. захват и последующий релиз
+  // 1) При монтировании — захват блокировки и автоматический релиз
   useEffect(() => {
     (async () => {
       const ok = await acquireLock();
       if (!ok) return;
+      // сразу подгружаем данные без фильтра (filter пуст)
+      try {
+        const prods = await getProducts(filter);
+        setProducts(prods);
+        const range = await getPriceRange();
+        setPriceRange(range);
+      } catch (err) {
+        console.error(err);
+      }
     })();
     return () => {
       releaseLock();
@@ -59,78 +65,71 @@ export function ProductCatalog() {
     })();
   }, []);
 
-  // 3) При успешном захвате или изменении фильтра — загрузка каталога
-  useEffect(() => {
-    if (isLocked && !sessionLoading) {
-      loadProducts();
-      loadPriceRange();
-    }
-  }, [isLocked, sessionLoading, filter]);
-
-  const loadProducts = async () => {
+  // 3) При успешном захвате и изменении фильтра — обновление каталога
+  const reloadCatalog = useCallback(async () => {
     setLoading(true);
     setError(null);
-    try {
-      const data = await getProducts(filter);
-      setProducts(data);
-    } catch (err) {
-      if (err instanceof Error && err.message === 'MACHINE_BUSY') {
-        setError('Автомат занят другим пользователем');
-      } else {
-        setError('Ошибка загрузки товаров');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const loadPriceRange = async () => {
+    const ok = await acquireLock();
+    if (!ok) {
+      setError('Автомат занят другим пользователем');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const prods = await getProducts(filter);
+      setProducts(prods);
+    } catch (err) {
+      setError('Ошибка загрузки товаров');
+    }
+
     try {
       const range = await getPriceRange(filter.brandId);
       setPriceRange(range);
     } catch {
       console.error('Ошибка загрузки диапазона цен');
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [acquireLock, filter]);
 
-  const handleFilterChange = (newFilter: ProductFilter) => {
-    setFilter(newFilter);
-  };
+  useEffect(() => {
+    if (isLocked && !sessionLoading) {
+      reloadCatalog();
+    }
+  }, [isLocked, sessionLoading, filter, reloadCatalog]);
 
-  // 4) Показ BusyModal при ошибке сессии (423)
+  // 4) Показываем BusyModal, если сессия не захвачена
   if (sessionError) {
     return (
       <BusyModal
         isOpen={true}
         message={sessionError}
-        onClose={() => {
-          clearError();
-        }}
+        onClose={clearError}
       />
     );
   }
 
-  // 5) Индикатор подключения
+  // 5) Индикатор подключения или загрузки сессии
   if (sessionLoading || !isLocked) {
     return (
       <div className="loading-container">
         <div className="loading-spinner">
-          <div className="spinner"></div>
+          <div className="spinner" />
           <p>Подключение к автомату...</p>
         </div>
       </div>
     );
   }
 
-  // 6) Отдельные ошибки (фильтр/бренды)
+  // 6) Ошибки фильтрации/загрузки
   if (error) {
     return (
       <div className="error-container">
         <h2>Ошибка</h2>
         <p>{error}</p>
-        <button onClick={() => window.location.reload()}>
-          Попробовать снова
-        </button>
+        <button onClick={reloadCatalog}>Попробовать снова</button>
       </div>
     );
   }
@@ -141,9 +140,7 @@ export function ProductCatalog() {
       <div className="catalog-header">
         <h1>Газированные напитки</h1>
         <div className="session-indicator">
-          <span className="session-status active">
-            Подключен к автомату
-          </span>
+          <span className="session-status active">Подключен к автомату</span>
         </div>
       </div>
 
@@ -151,9 +148,7 @@ export function ProductCatalog() {
         <BrandFilter
           brands={brands}
           selectedBrandId={filter.brandId}
-          onBrandChange={(brandId) =>
-            handleFilterChange({ ...filter, brandId })
-          }
+          onBrandChange={(brandId) => setFilter((f) => ({ ...f, brandId }))}
         />
 
         <PriceFilter
@@ -161,7 +156,7 @@ export function ProductCatalog() {
           selectedMin={filter.minPrice}
           selectedMax={filter.maxPrice}
           onPriceChange={(minPrice, maxPrice) =>
-            handleFilterChange({ ...filter, minPrice, maxPrice })
+            setFilter((f) => ({ ...f, minPrice, maxPrice }))
           }
         />
       </div>
