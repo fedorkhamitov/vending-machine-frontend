@@ -2,19 +2,26 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 180px;
 }
 
 .brand-filter label {
-  font-weight: 600;
+  margin-bottom: 15px;
+  font-weight: 500;
+  font-size: 16px;
   color: #333;
 }
 
 .brand-select {
-  padding: 8px;
+  height: 40px;
+  min-width: 180px;
+  max-width: 240px;
+  padding: 8px 36px 8px 12px;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 14px;
-  margin-right: 16px;
+  box-sizing: border-box;
+  background-color: #fff;
 }
 
 .brand-select:focus {
