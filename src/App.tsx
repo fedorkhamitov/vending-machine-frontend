@@ -1,4 +1,3 @@
-// src/App.tsx
 import React, { useState } from "react";
 import { CartProvider } from "./context/CartContext";
 import { ProductCatalog } from "./components/ProductCatalog/ProductCatalog";
@@ -54,8 +53,6 @@ function App() {
             onBackToCatalog={() => setCurrentPage("catalog")}
           />
         );
-      default:
-        return <ProductCatalog onCheckout={() => setCurrentPage("cart")} />;
     }
   };
 

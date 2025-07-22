@@ -5,7 +5,7 @@ export async function getProducts(filter?: ProductFilter): Promise<Product[]> {
   return apiClient.get<Product[]>(`/api/products${buildQuery(filter)}`);
 }
 
-export async function getPriceRange(brandId?: string): Promise<PriceRange> {
+export async function getPriceRange(brandId?: string | null): Promise<PriceRange> {
   const query = brandId ? `?brandId=${brandId}` : '';
   return apiClient.get<PriceRange>(`/api/products/price-range${query}`);
 }

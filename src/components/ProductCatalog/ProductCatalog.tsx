@@ -79,7 +79,7 @@ export function ProductCatalog({ onCheckout }: ProductCatalogProps) {
     setImporting(true);
     setError(null);
     try {
-      const result = await importExcel(file);
+      await importExcel(file);
       await new Promise((r) => setTimeout(r, 500));
       setFilter({});
     } catch {
@@ -136,7 +136,7 @@ export function ProductCatalog({ onCheckout }: ProductCatalogProps) {
           brands={brands}
           selectedBrandId={filter.brandId ?? ""}
           onBrandChange={(brandId) =>
-            setFilter((f) => ({ ...f, brandId: brandId || undefined }))
+            setFilter((f) => ({ ...f, brandId: brandId || null }))
           }
         />
 

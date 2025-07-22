@@ -1,8 +1,8 @@
-import React from 'react';
-import { Product } from '../../types/product';
-import { useCart } from '../../context/CartContext';
-import { formatCurrency } from '../../utils/formatCurrency';
-import './ProductCard.css';
+import React from "react";
+import { Product } from "../../types/product";
+import { useCart } from "../../context/CartContext";
+import { formatCurrency } from "../../utils/formatCurrency";
+import "./ProductCard.css";
 
 interface ProductCardProps {
   product: Product;
@@ -11,7 +11,7 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const { cart, addToCart } = useCart();
 
-  const isInCart = cart.items.some(item => item.product.id === product.id);
+  const isInCart = cart.items.some((item) => item.product.id === product.id);
   const isOutOfStock = product.stockQuantity === 0;
 
   const handleAddToCart = () => {
@@ -20,18 +20,19 @@ export function ProductCard({ product }: ProductCardProps) {
     }
   };
 
-  let buttonClass = 'product-button';
-  let buttonText = 'Выбрать';
+  const buttonClass = `product-button ${
+    isOutOfStock
+      ? "product-button--disabled"
+      : isInCart
+      ? "product-button--selected"
+      : "product-button--default"
+  }`;
 
-  if (isOutOfStock) {
-    buttonClass += ' product-button--disabled';
-    buttonText = 'Закончился';
-  } else if (isInCart) {
-    buttonClass += ' product-button--selected';
-    buttonText = 'Выбрано';
-  } else {
-  buttonClass += ' product-button--default';
-}
+  const buttonText = isOutOfStock
+    ? "Закончился"
+    : isInCart
+    ? "Выбрано"
+    : "Выбрать";
 
   return (
     <div className="product-card">

@@ -9,10 +9,19 @@
 }
 
 .filters {
+  min-height: 56px;
   display: flex;
   gap: 20px;
   align-items: center;
   margin: 16px 0;
+}
+
+.brand-filter {
+  min-width: 200px;
+}
+
+.price-slider {
+  min-width: 220px;
 }
 
 .products-grid {

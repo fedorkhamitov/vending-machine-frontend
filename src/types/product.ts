@@ -8,10 +8,11 @@ export interface Product {
   brandId: string;
   brandName: string;
   isInStock: boolean;
+  imageUrl: string;
 }
 
 export interface ProductFilter {
-  brandId?: string;
+  brandId?: string | null;
   minPrice?: number;
   maxPrice?: number;
 }
