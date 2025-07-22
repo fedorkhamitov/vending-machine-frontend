@@ -31,6 +31,7 @@ export function ProductCatalog({ onCheckout }: ProductCatalogProps) {
     (sum, item) => sum + item.quantity,
     0
   );
+  const [tempMaxPrice, setTempMaxPrice] = useState<number | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -121,7 +122,7 @@ export function ProductCatalog({ onCheckout }: ProductCatalogProps) {
             {importing ? "Импорт..." : "Импорт"}
           </button>
           <button
-            className="btn btn--primary"
+            className="btn btn--green"
             disabled={selectedCount === 0}
             onClick={onCheckout}
           >
@@ -142,10 +143,12 @@ export function ProductCatalog({ onCheckout }: ProductCatalogProps) {
         <PriceSlider
           min={priceRange.minPrice}
           max={priceRange.maxPrice}
-          selectedMax={filter.maxPrice ?? priceRange.maxPrice}
-          onChange={(maxPrice) =>
-            setFilter((f) => ({ ...f, maxPrice, minPrice: undefined }))
-          }
+          selectedMax={tempMaxPrice ?? filter.maxPrice ?? priceRange.maxPrice}
+          onChangeTemp={(value) => setTempMaxPrice(value)}
+          onFinalChange={(value) => {
+            setTempMaxPrice(null);
+            setFilter((f) => ({ ...f, maxPrice: value }));
+          }}
         />
       </section>
 

@@ -1,19 +1,35 @@
-import React from 'react';
-import './PriceSlider.css';
+import React from "react";
+import "./PriceSlider.css";
 
 interface PriceSliderProps {
   min: number;
   max: number;
   selectedMax: number;
-  onChange: (maxPrice: number) => void;
+  onChangeTemp?: (value: number) => void;
+  onFinalChange: (value: number) => void;
 }
 
-export function PriceSlider({ min, max, selectedMax, onChange }: PriceSliderProps) {
+export function PriceSlider({
+  min,
+  max,
+  selectedMax,
+  onChangeTemp,
+  onFinalChange,
+}: PriceSliderProps) {
+  const handleTempChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVal = Number(e.target.value);
+    onChangeTemp?.(newVal);
+  };
+
+  const handleRelease = (
+    e: React.MouseEvent<HTMLInputElement> | React.TouchEvent<HTMLInputElement>
+  ) => {
+    const newVal = Number((e.target as HTMLInputElement).value);
+    onFinalChange(newVal);
+  };
   return (
     <div className="price-slider">
-      <div className="price-slider__label">
-        Стоимость
-      </div>
+      <div className="price-slider__label">Стоимость</div>
       <div className="price-slider__values">
         <span>{min} ₽</span>
         <span>{selectedMax} ₽</span>
@@ -25,7 +41,9 @@ export function PriceSlider({ min, max, selectedMax, onChange }: PriceSliderProp
           min={min}
           max={max}
           value={selectedMax}
-          onChange={(e) => onChange(Number(e.target.value))}
+          onChange={handleTempChange}
+          onMouseUp={handleRelease}
+          onTouchEnd={handleRelease}
         />
       </div>
     </div>

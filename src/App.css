@@ -16,10 +16,6 @@
   transition: background-color 0.2s;
 }
 
-.btn:hover:not(:disabled) {
-  background-color: var(--btn-bg-hover);
-}
-
 .btn:disabled {
   background-color: var(--btn-disabled-bg);
   color: var(--btn-disabled-text);
@@ -39,6 +35,24 @@
 .btn--gray:disabled {
   background-color: #cccccc !important;
   color: #333 !important;
+  cursor: default;
+}
+
+.btn--green {
+  background-color: #6aa84f;
+  color: #fff;
+  cursor: pointer;
+  transition: none;
+}
+
+.btn--green:hover {
+  background-color: #6aa84f;
+  color: #fff;
+}
+
+.btn--green:disabled {
+  background-color: #6aa84f;
+  color: #fff;
   cursor: default;
 }
 

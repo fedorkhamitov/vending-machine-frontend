@@ -29,7 +29,9 @@ export function ProductCard({ product }: ProductCardProps) {
   } else if (isInCart) {
     buttonClass += ' product-button--selected';
     buttonText = 'Выбрано';
-  }
+  } else {
+  buttonClass += ' product-button--default';
+}
 
   return (
     <div className="product-card">
@@ -46,7 +48,7 @@ export function ProductCard({ product }: ProductCardProps) {
       <button
         className={buttonClass}
         onClick={handleAddToCart}
-        disabled={isOutOfStock || isInCart}
+        disabled={isOutOfStock}
       >
         {buttonText}
       </button>
