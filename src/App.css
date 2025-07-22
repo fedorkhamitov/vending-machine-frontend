@@ -1,17 +1,14 @@
 :root {
-  --btn-bg: #FF6B00;
-  --btn-bg-hover: #FF8A33;
+  --btn-bg: #f1c232;
   --btn-text: #FFFFFF;
-  --btn-disabled-bg: #CCC;
-  --btn-disabled-text: #888;
-
+  --btn-disabled-bg: #dddddd;
+  --btn-disabled-text: #3e3e3e;
   --grid-gap: 16px;
 }
 
 .btn {
   padding: 8px 16px;
   border: none;
-  border-radius: 4px;
   font-weight: 600;
   cursor: pointer;
   background-color: var(--btn-bg);
@@ -29,6 +26,22 @@
   cursor: default;
 }
 
+.btn--gray {
+  background-color: #cccccc !important;
+  color: #333;
+  cursor: pointer;
+}
+
+.btn--gray:hover {
+  background-color: #cccccc !important;
+}
+
+.btn--gray:disabled {
+  background-color: #cccccc !important;
+  color: #333 !important;
+  cursor: default;
+}
+
 .products-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -39,7 +52,6 @@
 .header__btn {
   padding: 8px 16px;
   border: none;
-  border-radius: 4px;
   font-weight: 600;
   background-color: var(--btn-selected-bg);
   color: var(--btn-selected-text);

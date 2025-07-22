@@ -114,7 +114,7 @@ export function ProductCatalog({ onCheckout }: ProductCatalogProps) {
             onChange={handleFileChange}
           />
           <button
-            className="btn btn--secondary"
+            className="btn btn--gray"
             onClick={handleImportClick}
             disabled={importing}
           >
