@@ -1,7 +1,7 @@
-import React from "react";
 import { Product } from "../../types/product";
 import { useCart } from "../../context/CartContext";
 import { formatCurrency } from "../../utils/formatCurrency";
+import { apiClient } from "../../api/apiClient";
 import "./ProductCard.css";
 
 interface ProductCardProps {
@@ -10,9 +10,9 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const { cart, addToCart } = useCart();
-
   const isInCart = cart.items.some((item) => item.product.id === product.id);
   const isOutOfStock = product.stockQuantity === 0;
+  const imageSrc = apiClient.getAssetUrl(product.imageUrl);
 
   const handleAddToCart = () => {
     if (!isOutOfStock && !isInCart) {
@@ -36,6 +36,14 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <div className="product-card">
+      <img
+        className="product-image"
+        src={imageSrc}
+        alt={product.name}
+        width={250}
+        height={250}
+        loading="lazy"
+      />
       <h3 className="product-name">{product.name}</h3>
 
       {product.description && (

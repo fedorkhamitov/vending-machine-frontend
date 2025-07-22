@@ -37,7 +37,7 @@ function App() {
       case "catalog":
         return <ProductCatalog onCheckout={() => setCurrentPage("cart")} />;
       case "cart":
-        return <Cart onCheckout={() => setCurrentPage("payment")} />;
+        return <Cart onCheckout={() => setCurrentPage("payment")} onBack={() => setCurrentPage("catalog")}  />;
       case "payment":
         return (
           <Payment

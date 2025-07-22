@@ -72,3 +72,10 @@
   max-width: 1200px;
   margin: 0 auto;
 }
+
+.product-image {
+  width: 250px;
+  height: 250px;
+  object-fit: cover;
+  margin-bottom: 8px;
+}
