@@ -1,72 +1,81 @@
-import React from 'react';
-import { InsertedCoins } from '../../types/coin';
-import './CoinSelector.css';
+import { InsertedCoins } from "../../types/coin";
+import "./CoinSelector.css";
 
 interface CoinSelectorProps {
-  onCoinChange: (denomination: number, count: number) => void;
+  onCoinChange: (denom: number, count: number) => void;
   insertedCoins: InsertedCoins;
 }
 
 const COIN_DENOMINATIONS = [1, 2, 5, 10];
+const decl = (n: number) =>
+  n === 1 ? "рубль" : n >= 2 && n <= 4 ? "рубля" : "рублей";
 
 export function CoinSelector({ onCoinChange, insertedCoins }: CoinSelectorProps) {
-  const handleCoinIncrease = (denomination: number) => {
-    const currentCount = insertedCoins[denomination] || 0;
-    onCoinChange(denomination, currentCount + 1);
+  const inc = (d: number) => onCoinChange(d, (insertedCoins[d] || 0) + 1);
+  const dec = (d: number) => {
+    const c = insertedCoins[d] || 0;
+    if (c > 0) onCoinChange(d, c - 1);
   };
-  
-  const handleCoinDecrease = (denomination: number) => {
-    const currentCount = insertedCoins[denomination] || 0;
-    if (currentCount > 0) {
-      onCoinChange(denomination, currentCount - 1);
-    }
-  };
-  
-  const handleCoinInput = (denomination: number, event: React.ChangeEvent<HTMLInputElement>) => {
-    const count = parseInt(event.target.value, 10);
-    if (!isNaN(count) && count >= 0) {
-      onCoinChange(denomination, count);
-    }
-  };
-  
+
   return (
     <div className="coin-selector">
-      {COIN_DENOMINATIONS.map(denomination => (
-        <div key={denomination} className="coin-item">
-          <div className="coin-icon">
-            {denomination}₽
-          </div>
-          
-          <div className="coin-controls">
-            <button
-              className="coin-btn"
-              onClick={() => handleCoinDecrease(denomination)}
-              disabled={!insertedCoins[denomination]}
-            >
-              -
-            </button>
-            
-            <input
-              type="number"
-              value={insertedCoins[denomination] || 0}
-              onChange={(e) => handleCoinInput(denomination, e)}
-              min="0"
-              className="coin-input"
-            />
-            
-            <button
-              className="coin-btn"
-              onClick={() => handleCoinIncrease(denomination)}
-            >
-              +
-            </button>
-          </div>
-          
-          <div className="coin-total">
-            {(insertedCoins[denomination] || 0) * denomination}₽
-          </div>
-        </div>
-      ))}
+      <table className="coin-selector__table">
+        <thead>
+          <tr>
+            <th>Номинал</th>
+            <th>Количество</th>
+            <th>Сумма</th>
+          </tr>
+        </thead>
+        <tbody>
+          {COIN_DENOMINATIONS.map((d) => {
+            const cnt = insertedCoins[d] || 0;
+            return (
+              <tr key={d}>
+                <td className="td-coin">
+                  <div className="coin-icon">{d}</div>
+                  <span className="coin-label">
+                    {d} {decl(d)}
+                  </span>
+                </td>
+
+                <td className="td-count">
+                  <button
+                    className="quantity-btn quantity-btn--decrease"
+                    onClick={() => dec(d)}
+                    disabled={cnt === 0}
+                    aria-label="Уменьшить"
+                  >
+                    <img
+                      src={require("../../assets/icons/minus.svg")}
+                      alt="-"
+                      className="btn-icon"
+                    />
+                  </button>
+
+                  <span className="quantity-value">{cnt}</span>
+
+                  <button
+                    className="quantity-btn quantity-btn--increase"
+                    onClick={() => inc(d)}
+                    aria-label="Увеличить"
+                  >
+                    <img
+                      src={require("../../assets/icons/plus.svg")}
+                      alt="+"
+                      className="btn-icon"
+                    />
+                  </button>
+                </td>
+
+                <td className="td-sum">
+                  {(d * cnt).toLocaleString()} руб.
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
